@@ -1,8 +1,0 @@
-Задания выполнял через консоль, подключаясь к виртуальной машине.
-
-anatolytsi@anatolytsi-linux-gui-pc:~$ cat ~/.my.cnf
-[mysql]
-user=root
-password=12345678anatolytsi@anatolytsi-linux-gui-pc:~$ chmod 0600 .my.cnf
-anatolytsi@anatolytsi-linux-gui-pc:~$ ls -la ~ | grep .my.cnf
--r--r--r--  1 anatolytsi anatolytsi    41 Aug 12 20:41 .my.cnf
