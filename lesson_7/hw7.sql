@@ -7,9 +7,9 @@ SELECT * FROM orders;
 DESC orders_products;
 SELECT * FROM orders_products;
 
--- 1. Составьте список пользователей users, которые осуществили хотя бы один заказ orders в интернет магазине.
+-- 1. РЎРѕСЃС‚Р°РІСЊС‚Рµ СЃРїРёСЃРѕРє РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ users, РєРѕС‚РѕСЂС‹Рµ РѕСЃСѓС‰РµСЃС‚РІРёР»Рё С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ Р·Р°РєР°Р· orders РІ РёРЅС‚РµСЂРЅРµС‚ РјР°РіР°Р·РёРЅРµ.
 
--- Заполняем таблицу заказов
+-- Р—Р°РїРѕР»РЅСЏРµРј С‚Р°Р±Р»РёС†Сѓ Р·Р°РєР°Р·РѕРІ
 INSERT INTO orders
 	(user_id)
 VALUES
@@ -29,7 +29,7 @@ REFERENCES users(id)
 ON DELETE CASCADE
 ON UPDATE CASCADE;
 
--- Заполняем таблицу заказанных товаров
+-- Р—Р°РїРѕР»РЅСЏРµРј С‚Р°Р±Р»РёС†Сѓ Р·Р°РєР°Р·Р°РЅРЅС‹С… С‚РѕРІР°СЂРѕРІ
 INSERT INTO orders_products
 	(order_id, product_id)
 VALUES
@@ -53,7 +53,7 @@ REFERENCES products(id)
 ON DELETE CASCADE
 ON UPDATE CASCADE;
 
--- Создаем запрос
+-- РЎРѕР·РґР°РµРј Р·Р°РїСЂРѕСЃ
 SELECT 
 	u.id,
 	u.name,
@@ -66,7 +66,7 @@ ON
 	o.user_id = u.id
 GROUP BY u.id;
 
--- 2. Выведите список товаров products и разделов catalogs, который соответствует товару.
+-- 2. Р’С‹РІРµРґРёС‚Рµ СЃРїРёСЃРѕРє С‚РѕРІР°СЂРѕРІ products Рё СЂР°Р·РґРµР»РѕРІ catalogs, РєРѕС‚РѕСЂС‹Р№ СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓРµС‚ С‚РѕРІР°СЂСѓ.
 SELECT
 	p.name AS product_name,
 	p.price,
@@ -78,16 +78,16 @@ JOIN
 ON 
 	c.id = p.catalog_id;
 
--- 3*. Пусть имеется таблица рейсов flights (id, from, to) и таблица городов cities (label, name). 
--- 	   Поля from, to и label содержат английские названия городов, поле name — русское. Выведите список рейсов flights с русскими названиями городов.
+-- 3*. РџСѓСЃС‚СЊ РёРјРµРµС‚СЃСЏ С‚Р°Р±Р»РёС†Р° СЂРµР№СЃРѕРІ flights (id, from, to) Рё С‚Р°Р±Р»РёС†Р° РіРѕСЂРѕРґРѕРІ cities (label, name). 
+-- 	   РџРѕР»СЏ from, to Рё label СЃРѕРґРµСЂР¶Р°С‚ Р°РЅРіР»РёР№СЃРєРёРµ РЅР°Р·РІР°РЅРёСЏ РіРѕСЂРѕРґРѕРІ, РїРѕР»Рµ name вЂ” СЂСѓСЃСЃРєРѕРµ. Р’С‹РІРµРґРёС‚Рµ СЃРїРёСЃРѕРє СЂРµР№СЃРѕРІ flights СЃ СЂСѓСЃСЃРєРёРјРё РЅР°Р·РІР°РЅРёСЏРјРё РіРѕСЂРѕРґРѕРІ.
 
--- Создаем таблицы
+-- РЎРѕР·РґР°РµРј С‚Р°Р±Р»РёС†С‹
 DROP TABLE IF EXISTS flights;
 CREATE TABLE flights (
   id SERIAL PRIMARY KEY,
-  from_city VARCHAR(255) COMMENT 'Город прибытия',
-  to_city VARCHAR(255) COMMENT 'Город вылета'
-) COMMENT = 'Полеты';
+  from_city VARCHAR(255) COMMENT 'Р“РѕСЂРѕРґ РїСЂРёР±С‹С‚РёСЏ',
+  to_city VARCHAR(255) COMMENT 'Р“РѕСЂРѕРґ РІС‹Р»РµС‚Р°'
+) COMMENT = 'РџРѕР»РµС‚С‹';
 
 INSERT INTO flights
 	(from_city, to_city)
@@ -100,35 +100,35 @@ VALUES
 
 DROP TABLE IF EXISTS cities;
 CREATE TABLE cities (
-  label VARCHAR(255) PRIMARY KEY COMMENT 'Город по-английски',
-  name VARCHAR(255) COMMENT 'Город по-русски'
-) COMMENT = 'Города';
+  label VARCHAR(255) PRIMARY KEY COMMENT 'Р“РѕСЂРѕРґ РїРѕ-Р°РЅРіР»РёР№СЃРєРё',
+  name VARCHAR(255) COMMENT 'Р“РѕСЂРѕРґ РїРѕ-СЂСѓСЃСЃРєРё'
+) COMMENT = 'Р“РѕСЂРѕРґР°';
 
 INSERT INTO cities
 	(label, name)
 VALUES
-	('Moscow', 'Москва'),
-	('Irkutsk', 'Иркутск'),
-	('Novgorod', 'Новгород'),
-	('Kazan', 'Казань'),
-	('Omsk', 'Омск');
+	('Moscow', 'РњРѕСЃРєРІР°'),
+	('Irkutsk', 'РСЂРєСѓС‚СЃРє'),
+	('Novgorod', 'РќРѕРІРіРѕСЂРѕРґ'),
+	('Kazan', 'РљР°Р·Р°РЅСЊ'),
+	('Omsk', 'РћРјСЃРє');
 
 SELECT * FROM flights;
 SELECT * FROM cities;
 
--- Создаем запрос. Максимально простой вариант без джоина
+-- РЎРѕР·РґР°РµРј Р·Р°РїСЂРѕСЃ. РњР°РєСЃРёРјР°Р»СЊРЅРѕ РїСЂРѕСЃС‚РѕР№ РІР°СЂРёР°РЅС‚ Р±РµР· РґР¶РѕРёРЅР°
 SELECT 
 	f.id,
-	(SELECT c.name FROM cities AS c WHERE c.label = f.from_city) AS 'Город отправки',
-	(SELECT c.name FROM cities AS c WHERE c.label = f.to_city) AS 'Город назначения'
+	(SELECT c.name FROM cities AS c WHERE c.label = f.from_city) AS 'Р“РѕСЂРѕРґ РѕС‚РїСЂР°РІРєРё',
+	(SELECT c.name FROM cities AS c WHERE c.label = f.to_city) AS 'Р“РѕСЂРѕРґ РЅР°Р·РЅР°С‡РµРЅРёСЏ'
 FROM 
 	flights AS f;
 
--- Запрос с джоином
+-- Р—Р°РїСЂРѕСЃ СЃ РґР¶РѕРёРЅРѕРј
 SELECT 
 	f.id, 
-	c1.name AS 'Город отправки', 
-	c2.name AS 'Город назначения'
+	c1.name AS 'Р“РѕСЂРѕРґ РѕС‚РїСЂР°РІРєРё', 
+	c2.name AS 'Р“РѕСЂРѕРґ РЅР°Р·РЅР°С‡РµРЅРёСЏ'
 FROM
 	flights AS f
 JOIN
