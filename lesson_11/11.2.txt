@@ -1,0 +1,31 @@
+1.
+127.0.0.1:6379> HMSET ip_visits 192.168.1.24 1 192.168.1.25 1
+OK
+127.0.0.1:6379> HINCRBY ip_visits 192.168.1.24 1
+(integer) 2
+127.0.0.1:6379> HVALS ip_visits
+1) "2"
+2) "1"
+127.0.0.1:6379> HKEYS ip_visits
+1) "192.168.1.24"
+2) "192.168.1.25"
+
+2. По моей логике должно было быть как то так, но не получилось
+127.0.0.1:6379> SADD user1 user1@gmail.com Username
+(integer) 2
+127.0.0.1:6379> SMEMBERS user1
+1) "Username"
+2) "user1@gmail.com"
+127.0.0.1:6379> SINTER user1 Username
+(empty list or set)
+127.0.0.1:6379> SINTER user1 "Username"
+(empty list or set)
+127.0.0.1:6379> SINTER "Username" user1
+(empty list or set)
+127.0.0.1:6379> SDIFF user1 "Username"
+1) "Username"
+2) "user1@gmail.com"
+127.0.0.1:6379> SDIFF user1 Username
+1) "Username"
+2) "user1@gmail.com"
+127.0.0.1:6379> SDIFF user1 [Username]
