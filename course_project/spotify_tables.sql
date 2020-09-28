@@ -6,6 +6,11 @@ DROP TABLE IF EXISTS liked_artists;
 DROP TABLE IF EXISTS liked_albums;
 DROP TABLE IF EXISTS liked_playlists;
 
+DROP TABLE IF EXISTS featuring_tracks;
+DROP TABLE IF EXISTS tracks_genres;
+DROP TABLE IF EXISTS albums_genres;
+DROP TABLE IF EXISTS artists_genres;
+
 DROP TABLE IF EXISTS playlists_content;
 DROP TABLE IF EXISTS playlists;
 
@@ -149,22 +154,47 @@ CREATE TABLE artists (
 	id SERIAL PRIMARY KEY COMMENT 'Идентификатор исполнителя',
 	name VARCHAR(50) UNIQUE COMMENT 'Имя исполнителя',
 	rating INT UNSIGNED COMMENT 'Рейтинг исполнителя',
-	genre_id BIGINT UNSIGNED COMMENT 'Идентификатор жанра',
-	CONSTRAINT artists_genre_id_fk FOREIGN KEY (genre_id) REFERENCES genres(id) ON DELETE CASCADE,
 	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) COMMENT = 'Исполнители';
 
-INSERT INTO artists(name, genre_id) VALUES 
-	('Big Baby Tape', 2),
-	('Husky', 2),
-	('Гражданская оборона', 5),
-	('Mnogoznaal', 2),
-	('Макс Корж', 1),
-	('ATL', 1),
-	('Hatebreed', 3),
-	('LSP', 4),
-	('Linkin Park', 6);
+INSERT INTO artists(name) VALUES 
+	('Big Baby Tape'),
+	('Husky'),
+	('Гражданская оборона'),
+	('Mnogoznaal'),
+	('Макс Корж'),
+	('ATL'),
+	('Hatebreed'),
+	('LSP'),
+	('Linkin Park');
+
+DROP TABLE IF EXISTS artists_genres;
+CREATE TABLE artists_genres (
+	artist_id BIGINT UNSIGNED NOT NULL COMMENT 'Идентификатор исполнителя',
+	genre_id BIGINT UNSIGNED NOT NULL COMMENT 'Идентификатор жанра',
+	CONSTRAINT artists_genres_artist_id_fk FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE
+) COMMENT = 'Жанры исполнителей';
+
+INSERT INTO artists_genres(artist_id, genre_id) VALUES
+	(1, 1),
+	(1, 2),
+	(2, 1),
+	(2, 2),
+	(2, 5),
+	(3, 5),
+	(3, 6),
+	(4, 1),
+	(4, 2),
+	(5, 1),
+	(5, 2),
+	(6, 1),
+	(6, 5),
+	(7, 3),
+	(8, 3),
+	(8, 4),
+	(8, 2),
+	(8, 6);
 
 -- Жанры явно задаются, тк альбомы от исполнителя порой выходят в другом жанре
 DROP TABLE IF EXISTS albums;
@@ -172,26 +202,53 @@ CREATE TABLE albums (
 	id SERIAL PRIMARY KEY COMMENT 'Идентификатор альбома',
 	name VARCHAR(50) COMMENT 'Название альбома',
 	rating INT UNSIGNED COMMENT 'Рейтинг альбома',
-	genre_id BIGINT UNSIGNED COMMENT 'Идентификатор жанра',
+-- 	genre_id BIGINT UNSIGNED COMMENT 'Идентификатор жанра',
 	artist_id BIGINT UNSIGNED COMMENT 'Идентификатор исполнителя',
-	CONSTRAINT albums_genre_id_fk FOREIGN KEY (genre_id) REFERENCES genres(id) ON DELETE CASCADE,
 	CONSTRAINT albums_artist_id_fk FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE,
 	created_at DATETIME DEFAULT (NOW() - INTERVAL (RAND()*90) DAY),
 	updated_at DATETIME DEFAULT (NOW() - INTERVAL (RAND()*90) DAY) ON UPDATE CURRENT_TIMESTAMP
 ) COMMENT = 'Альбомы';
 
-INSERT INTO albums(name, genre_id, artist_id) VALUES 
-	('Dragonborn', 2, 1),
-	('ARGUMENTS & FACTS', 2, 1),
-	('Любимые пени воображаемых людей', 2, 2),
-	('Автопортреты', 2, 2),
-	('The Best Pt. 3', 5, 3),
-	('Гостиница Космос', 2, 4),
-	('Малый повзрослел, Ч.1', 1, 5),
-	('Забил', 1, 6),
-	('Weight of the False Self', 3, 7),
-	('One More City', 1, 8),
-	('One More Light', 6, 9);
+INSERT INTO albums(name, artist_id) VALUES 
+	('Dragonborn', 1),
+	('ARGUMENTS & FACTS', 1),
+	('Любимые пени воображаемых людей', 2),
+	('Автопортреты', 2),
+	('The Best Pt. 3', 3),
+	('Гостиница Космос', 4),
+	('Малый повзрослел, Ч.1', 5),
+	('Забил', 6),
+	('Weight of the False Self', 7),
+	('One More City', 8),
+	('One More Light', 9);
+
+DROP TABLE IF EXISTS albums_genres;
+CREATE TABLE albums_genres (
+	album_id BIGINT UNSIGNED NOT NULL COMMENT 'Идентификатор исполнителя',
+	genre_id BIGINT UNSIGNED NOT NULL COMMENT 'Идентификатор жанра',
+	CONSTRAINT albums_genres_albums_id_fk FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
+) COMMENT = 'Жанры исполнителей';
+
+INSERT INTO albums_genres(album_id, genre_id) VALUES
+	(1, 1),
+	(2, 2),
+	(3, 1),
+	(3, 2),
+	(4, 5),
+	(5, 5),
+	(5, 6),
+	(6, 1),
+	(6, 2),
+	(7, 1),
+	(7, 2),
+	(8, 1),
+	(8, 5),
+	(9, 3),
+	(9, 3),
+	(10, 4),
+	(10, 2),
+	(10, 6),
+	(11, 6);
 
 -- Жанры явно задаются, тк песни от исполнителя порой выходят в другом жанре
 DROP TABLE IF EXISTS tracks;
@@ -199,134 +256,674 @@ CREATE TABLE tracks (
 	id SERIAL PRIMARY KEY COMMENT 'Идентификатор трека',
 	name VARCHAR(50) COMMENT 'Название трека',
 	rating INT UNSIGNED COMMENT 'Рейтинг трека',
-	genre_id BIGINT UNSIGNED COMMENT 'Идентификатор жанра',
+-- 	genre_id BIGINT UNSIGNED COMMENT 'Идентификатор жанра',
 	artist_id BIGINT UNSIGNED COMMENT 'Идентификатор исполнителя',
 	album_id BIGINT UNSIGNED COMMENT 'Идентификатор альбома',
-	CONSTRAINT tracks_genre_id_fk FOREIGN KEY (genre_id) REFERENCES genres(id) ON DELETE CASCADE,
 	CONSTRAINT tracks_artist_id_fk FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE,
 	CONSTRAINT tracks_album_id_fk FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE,
 	created_at DATETIME DEFAULT (NOW() - INTERVAL (RAND()*90) DAY),
 	updated_at DATETIME DEFAULT (NOW() - INTERVAL (RAND()*90) DAY) ON UPDATE CURRENT_TIMESTAMP
 ) COMMENT = 'Треки';
 
-SELECT * FROM tracks;
-
 CREATE INDEX tracks_id_idx ON tracks(id);
 CREATE INDEX tracks_name_idx ON tracks(name);
 CREATE INDEX tracks_rating_idx ON tracks(rating);
 
-INSERT INTO tracks(name, genre_id, artist_id, album_id) VALUES 
-	('DB Intro', 2, 1, 1), 
-	('Dragonborn', 2, 1, 1), 
-	('ACAB', 2, 1, 1), 
-	('Benzo Gang Money', 2, 1, 1), 
-	('Wasabi', 2, 1, 1), 
-	('Project X', 2, 1, 1), 
-	('Vampire Type Bitch', 2, 1, 1), 
-	('Blast!', 2, 1, 1),
-	('Boyz From The Hood', 2, 1, 1),
-	('Hokage', 2, 1, 1),
-	('1000 Shells', 2, 1, 1),
-	('Cream Soda', 2, 1, 1),
-	('98 Flow', 2, 1, 1),
-	('Hot Wigga', 2, 1, 1),
-	('Flip Phone Twerk', 2, 1, 1),
-	('MILF', 2, 1, 1),
-	('Konichiwa', 2, 1, 1),
-	('Gucci Kandelaki 2016', 2, 1, 1),
-	('Hadouken!', 2, 1, 1),
-	('Gimme The Loot', 2, 1, 1),
-	('Coldfront', 2, 1, 1),
-	('Hard 2 Kill', 2, 1, 1),
-	('DB Outro', 2, 1, 1),
-	('FAX', 2, 1, 2),
-	('Surname', 2, 1, 2),
-	('Brigada', 2, 1, 2),
-	('Weight', 2, 1, 2),
-	('Balaclava', 2, 1, 2),
-	('Ай', 2, 2, 3),
-	('Бит шатает голову', 2, 2, 3),
-	('Панелька', 2, 2, 3),
-	('Заново', 2, 2, 3),
-	('Пуля дура', 2, 2, 3),
-	('Пироман 17', 2, 2, 3),
-	('Аллилуйя', 2, 2, 3),
-	('Мармелад', 2, 2, 3),
-	('Фюрер', 2, 2, 3),
-	('Черным-черно', 2, 2, 3),
-	('Хозяйка', 2, 2, 3),
-	('Детка-голливуд', 2, 2, 3),
-	('Мультики', 2, 2, 3),
-	('Дурачок', 2, 2, 4),
-	('Тараканий бог', 2, 2, 4),
-	('Господин собака', 2, 2, 4),
-	('Крот', 2, 2, 4),
-	('Отопление', 2, 2, 4),
-	('Бэнг бэнг', 2, 2, 4),
-	('Никто не хотел умирать', 5, 3, 5),
-	('Он увидел солнце', 5, 3, 5),
-	('Среди зараженного логикой мира', 5, 3, 5),
-	('Наваждение', 5, 3, 5),
-	('Сквозь дыру в моей голове', 5, 3, 5),
-	('Кого-то еще', 5, 3, 5),
-	('Непонятная песенка', 5, 3, 5),
-	('Скоро настанет совсем', 5, 3, 5),
-	('Харакири', 5, 3, 5),
-	('Хороший автобус', 5, 3, 5),
-	('Вершки и корешки', 5, 3, 5),
-	('Мимикрия', 5, 3, 5),
-	('Вечная весна', 5, 3, 5),
-	('Отряд не заметил потери бойца', 5, 3, 5),
-	('Про червячков', 5, 3, 5),
-	('Родина', 5, 3, 5),
-	('Беспонтовый пирожок', 5, 3, 5),
-	('Собаки', 5, 3, 5),
-	('Снаружи всех измерений', 5, 3, 5),
-	('Гостиница Космос', 2, 4, 6),
-	('Девятины', 2, 4, 6),
-	('Крики в никуда', 2, 4, 6),
-	('JUD', 2, 4, 6),
-	('Шахбокс', 2, 4, 6),
-	('Z-PAM', 2, 4, 6),
-	('Минус 40', 2, 4, 6),
-	('Среди них', 2, 4, 6),
-	('Речная часть', 2, 4, 6),
-	('Свое заберу', 1, 5, 7),
-	('Малый повзрослел', 1, 5, 7),
-	('Маклауд', 1, 5, 7),
-	('Стилево', 1, 5, 7),
-	('Без косяка', 1, 5, 7),
-	('Крутой чел', 1, 5, 7),
-	('Настоящий', 1, 5, 7),
-	('Эмилия', 1, 5, 7),
-	('Мой друг', 1, 5, 7),
-	('Забил', 1, 6, 8),
-	('Weight of the False Self', 3, 7, 9),
-	('Золотой мальчик', 1, 8, 10),
-	('Поп-звезда', 1, 8, 10),
-	('Мамонтенок', 1, 8, 10),
-	('Девочка-пришелец', 1, 8, 10),
-	('Парный дурак', 1, 8, 10),
-	('Золушка', 1, 8, 10),
-	('Ууу', 1, 8, 10),
-	('Бинокль', 1, 8, 10),
-	('Именно такой', 1, 8, 10),
-	('Амнезия', 1, 8, 10),
-	('Цветная бумага', 1, 8, 10),
-	('Один', 1, 8, 10),
-	('Дюны', 1, 8, 10),
-	('10 негритят', 1, 8, 10),
-	('Вспоминай', 1, 8, 10),
-	('Nobody Can Save Me', 6, 9, 11),
-	('Good Goodbye', 6, 9, 11),
-	('Talking to Myself', 6, 9, 11),
-	('Battle Symphony', 6, 9, 11),
-	('Invisible', 6, 9, 11),
-	('Heavy', 6, 9, 11),
-	('Sorry for Now', 6, 9, 11),
-	('Halfway Right', 6, 9, 11),
-	('One More Light', 6, 9, 11),
-	('Sharp Edges', 6, 9, 11);
+INSERT INTO tracks(name, artist_id, album_id) VALUES 
+	('DB Intro', 1, 1), 
+	('Dragonborn', 1, 1), 
+	('ACAB', 1, 1), 
+	('Benzo Gang Money', 1, 1), 
+	('Wasabi', 1, 1), 
+	('Project X', 1, 1), 
+	('Vampire Type Bitch', 1, 1), 
+	('Blast!', 1, 1),
+	('Boyz From The Hood', 1, 1),
+	('Hokage', 1, 1),
+	('1000 Shells', 1, 1),
+	('Cream Soda', 1, 1),
+	('98 Flow', 1, 1),
+	('Hot Wigga', 1, 1),
+	('Flip Phone Twerk', 1, 1),
+	('MILF', 1, 1),
+	('Konichiwa', 1, 1),
+	('Gucci Kandelaki 2016', 1, 1),
+	('Hadouken!', 1, 1),
+	('Gimme The Loot', 1, 1),
+	('Coldfront', 1, 1),
+	('Hard 2 Kill', 1, 1),
+	('DB Outro', 1, 1),
+	('FAX', 1, 2),
+	('Surname', 1, 2),
+	('Brigada', 1, 2),
+	('Weight', 1, 2),
+	('Balaclava', 1, 2),
+	('Ай', 2, 3),
+	('Бит шатает голову', 2, 3),
+	('Панелька', 2, 3),
+	('Заново', 2, 3),
+	('Пуля дура', 2, 3),
+	('Пироман 17', 2, 3),
+	('Аллилуйя', 2, 3),
+	('Мармелад', 2, 3),
+	('Фюрер', 2, 3),
+	('Черным-черно', 2, 3),
+	('Хозяйка', 2, 3),
+	('Детка-голливуд', 2, 3),
+	('Мультики', 2, 3),
+	('Дурачок', 2, 4),
+	('Тараканий бог', 2, 4),
+	('Господин собака', 2, 4),
+	('Крот', 2, 4),
+	('Отопление', 2, 4),
+	('Бэнг бэнг', 2, 4),
+	('Никто не хотел умирать', 3, 5),
+	('Он увидел солнце', 3, 5),
+	('Среди зараженного логикой мира', 3, 5),
+	('Наваждение', 3, 5),
+	('Сквозь дыру в моей голове', 3, 5),
+	('Кого-то еще', 3, 5),
+	('Непонятная песенка', 3, 5),
+	('Скоро настанет совсем', 3, 5),
+	('Харакири', 3, 5),
+	('Хороший автобус', 3, 5),
+	('Вершки и корешки', 3, 5),
+	('Мимикрия', 3, 5),
+	('Вечная весна', 3, 5),
+	('Отряд не заметил потери бойца', 3, 5),
+	('Про червячков', 3, 5),
+	('Родина', 3, 5),
+	('Беспонтовый пирожок', 3, 5),
+	('Собаки', 3, 5),
+	('Снаружи всех измерений', 3, 5),
+	('Гостиница Космос', 4, 6),
+	('Девятины', 4, 6),
+	('Крики в никуда', 4, 6),
+	('JUD', 4, 6),
+	('Шахбокс', 4, 6),
+	('Z-PAM', 4, 6),
+	('Минус 40', 4, 6),
+	('Среди них', 4, 6),
+	('Речная часть', 4, 6),
+	('Свое заберу', 5, 7),
+	('Малый повзрослел', 5, 7),
+	('Маклауд', 5, 7),
+	('Стилево', 5, 7),
+	('Без косяка', 5, 7),
+	('Крутой чел', 5, 7),
+	('Настоящий', 5, 7),
+	('Эмилия', 5, 7),
+	('Мой друг', 5, 7),
+	('Забил', 6, 8),
+	('Weight of the False Self', 7, 9),
+	('Золотой мальчик', 8, 10),
+	('Поп-звезда', 8, 10),
+	('Мамонтенок', 8, 10),
+	('Девочка-пришелец', 8, 10),
+	('Парный дурак', 8, 10),
+	('Золушка', 8, 10),
+	('Ууу', 8, 10),
+	('Бинокль', 8, 10),
+	('Именно такой', 8, 10),
+	('Амнезия', 8, 10),
+	('Цветная бумага', 8, 10),
+	('Один', 8, 10),
+	('Дюны', 8, 10),
+	('10 негритят', 8, 10),
+	('Вспоминай', 8, 10),
+	('Nobody Can Save Me', 9, 11),
+	('Good Goodbye', 9, 11),
+	('Talking to Myself', 9, 11),
+	('Battle Symphony', 9, 11),
+	('Invisible', 9, 11),
+	('Heavy', 9, 11),
+	('Sorry for Now', 9, 11),
+	('Halfway Right', 9, 11),
+	('One More Light', 9, 11),
+	('Sharp Edges', 9, 11);
+
+DROP TABLE IF EXISTS tracks_genres;
+CREATE TABLE tracks_genres (
+	track_id BIGINT UNSIGNED NOT NULL COMMENT 'Идентификатор трека',
+	genre_id BIGINT UNSIGNED NOT NULL COMMENT 'Идентификатор жанра',
+	CONSTRAINT tracks_genres_track_id_fk FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE,
+	CONSTRAINT tracks_genres_genre_id_fk FOREIGN KEY (genre_id) REFERENCES genres(id) ON DELETE CASCADE
+) COMMENT = 'Жанры треков';
+
+INSERT INTO `tracks_genres` VALUES ('9','5'),
+('104','2'),
+('29','6'),
+('24','6'),
+('14','6'),
+('7','6'),
+('27','4'),
+('66','3'),
+('70','1'),
+('96','6'),
+('68','1'),
+('103','6'),
+('100','4'),
+('73','5'),
+('96','4'),
+('75','6'),
+('53','4'),
+('22','5'),
+('55','3'),
+('77','4'),
+('29','5'),
+('57','3'),
+('45','1'),
+('103','1'),
+('23','5'),
+('3','5'),
+('106','6'),
+('84','6'),
+('57','3'),
+('74','3'),
+('8','3'),
+('33','4'),
+('106','3'),
+('30','3'),
+('99','6'),
+('6','1'),
+('79','4'),
+('71','1'),
+('74','4'),
+('16','6'),
+('39','1'),
+('75','2'),
+('12','3'),
+('15','4'),
+('94','5'),
+('108','6'),
+('16','2'),
+('50','1'),
+('84','5'),
+('59','4'),
+('75','4'),
+('87','3'),
+('16','3'),
+('55','5'),
+('109','4'),
+('75','2'),
+('88','3'),
+('68','6'),
+('87','5'),
+('56','4'),
+('61','3'),
+('59','5'),
+('82','6'),
+('85','3'),
+('77','2'),
+('14','3'),
+('97','6'),
+('82','1'),
+('36','2'),
+('91','2'),
+('96','3'),
+('69','4'),
+('92','2'),
+('60','4'),
+('108','1'),
+('25','4'),
+('57','5'),
+('22','2'),
+('81','6'),
+('81','3'),
+('28','6'),
+('85','1'),
+('84','4'),
+('15','1'),
+('81','6'),
+('42','4'),
+('47','6'),
+('26','2'),
+('25','5'),
+('95','2'),
+('90','1'),
+('79','2'),
+('92','6'),
+('63','4'),
+('96','2'),
+('106','1'),
+('16','5'),
+('25','6'),
+('25','3'),
+('108','6'),
+('32','3'),
+('59','5'),
+('38','5'),
+('107','4'),
+('59','5'),
+('83','2'),
+('99','3'),
+('72','5'),
+('40','2'),
+('30','2'),
+('55','2'),
+('35','4'),
+('104','4'),
+('58','1'),
+('98','3'),
+('11','2'),
+('92','4'),
+('98','1'),
+('43','6'),
+('80','6'),
+('73','3'),
+('28','4'),
+('102','6'),
+('29','2'),
+('11','4'),
+('54','4'),
+('82','5'),
+('25','5'),
+('37','5'),
+('92','2'),
+('26','6'),
+('43','1'),
+('61','2'),
+('24','6'),
+('11','6'),
+('94','5'),
+('44','1'),
+('33','2'),
+('109','4'),
+('65','1'),
+('9','1'),
+('75','5'),
+('95','6'),
+('54','2'),
+('71','2'),
+('43','6'),
+('26','5'),
+('103','5'),
+('3','1'),
+('79','1'),
+('8','4'),
+('97','3'),
+('72','1'),
+('86','4'),
+('80','3'),
+('79','5'),
+('46','3'),
+('68','2'),
+('30','1'),
+('49','6'),
+('45','5'),
+('86','4'),
+('66','5'),
+('45','4'),
+('93','1'),
+('82','6'),
+('74','4'),
+('41','2'),
+('85','1'),
+('104','3'),
+('56','4'),
+('30','6'),
+('1','6'),
+('20','2'),
+('107','4'),
+('21','3'),
+('49','6'),
+('109','1'),
+('73','3'),
+('71','3'),
+('55','3'),
+('44','1'),
+('108','5'),
+('51','5'),
+('100','3'),
+('23','3'),
+('3','3'),
+('34','1'),
+('37','3'),
+('34','2'),
+('10','3'),
+('72','4'),
+('50','4'),
+('61','1'),
+('1','2'),
+('65','3'),
+('62','6'),
+('72','4'),
+('81','1'),
+('29','4'),
+('55','3'),
+('3','4'),
+('103','2'),
+('60','2'),
+('89','6'),
+('61','6'),
+('36','2'),
+('45','5'),
+('90','6'),
+('97','5'),
+('16','3'),
+('34','5'),
+('48','6'),
+('25','1'),
+('5','3'),
+('87','4'),
+('104','5'),
+('4','6'),
+('14','4'),
+('12','6'),
+('45','4'),
+('88','5'),
+('93','2'),
+('55','4'),
+('16','3'),
+('50','2'),
+('90','5'),
+('108','2'),
+('77','2'),
+('43','5'),
+('75','1'),
+('30','4'),
+('108','2'),
+('50','1'),
+('97','4'),
+('111','2'),
+('21','5'),
+('111','1'),
+('109','3'),
+('73','1'),
+('95','1'),
+('45','4'),
+('95','3'),
+('99','4'),
+('63','2'),
+('32','2'),
+('50','4'),
+('92','3'),
+('94','2'),
+('55','5'),
+('91','3'),
+('110','6'),
+('32','6'),
+('2','2'),
+('52','4'),
+('43','2'),
+('85','5'),
+('108','4'),
+('18','6'),
+('18','5'),
+('16','3'),
+('107','4'),
+('110','5'),
+('110','5'),
+('7','3'),
+('61','6'),
+('109','4'),
+('97','2'),
+('57','6'),
+('58','6'),
+('61','6'),
+('32','2'),
+('77','2'),
+('104','6'),
+('14','1'),
+('65','2'),
+('59','4'),
+('93','4'),
+('37','5'),
+('39','3'),
+('35','6'),
+('30','2'),
+('47','1'),
+('60','6'),
+('2','1'),
+('100','4'),
+('108','2'),
+('98','4'),
+('49','5'),
+('57','4'),
+('100','1'),
+('90','3'),
+('71','4'),
+('106','6'),
+('53','2'),
+('39','5'),
+('21','4'),
+('7','4'),
+('83','4'),
+('59','5'),
+('74','3'),
+('36','4'),
+('67','2'),
+('32','1'),
+('2','5'),
+('66','6'),
+('99','3'),
+('38','4'),
+('6','2'),
+('54','4'),
+('65','6'),
+('33','5'),
+('50','3'),
+('41','2'),
+('106','6'),
+('106','4'),
+('34','2'),
+('27','6'),
+('53','4'),
+('104','3'),
+('36','4'),
+('44','2'),
+('103','5'),
+('82','6'),
+('2','2'),
+('55','4'),
+('7','5'),
+('40','4'),
+('16','5'),
+('78','1'),
+('67','4'),
+('79','6'),
+('103','6'),
+('90','3'),
+('52','5'),
+('99','5'),
+('29','2'),
+('111','2'),
+('1','5'),
+('18','1'),
+('106','4'),
+('69','1'),
+('48','6'),
+('57','4'),
+('77','2'),
+('73','2'),
+('95','3'),
+('22','5'),
+('34','6'),
+('19','5'),
+('81','1'),
+('62','6'),
+('37','4'),
+('20','3'),
+('32','2'),
+('40','2'),
+('109','6'),
+('28','3'),
+('106','5'),
+('107','4'),
+('107','4'),
+('103','5'),
+('108','1'),
+('65','2'),
+('13','5'),
+('4','6'),
+('89','4'),
+('93','1'),
+('15','1'),
+('52','3'),
+('38','5'),
+('73','2'),
+('89','6'),
+('80','5'),
+('73','5'),
+('43','4'),
+('33','2'),
+('48','2'),
+('48','1'),
+('58','4'),
+('84','4'),
+('42','4'),
+('16','2'),
+('76','2'),
+('24','1'),
+('77','4'),
+('107','3'),
+('97','5'),
+('28','4'),
+('56','6'),
+('30','6'),
+('58','4'),
+('22','6'),
+('90','4'),
+('106','2'),
+('18','5'),
+('98','4'),
+('29','1'),
+('83','6'),
+('33','6'),
+('8','6'),
+('57','1'),
+('37','3'),
+('88','4'),
+('107','2'),
+('54','2'),
+('20','6'),
+('87','3'),
+('106','4'),
+('111','6'),
+('102','1'),
+('68','5'),
+('76','6'),
+('91','3'),
+('90','1'),
+('43','6'),
+('10','6'),
+('101','3'),
+('30','5'),
+('109','2'),
+('110','3'),
+('51','1'),
+('51','2'),
+('59','3'),
+('91','4'),
+('35','5'),
+('75','6'),
+('59','3'),
+('88','3'),
+('87','4'),
+('49','1'),
+('53','4'),
+('6','3'),
+('104','2'),
+('8','6'),
+('60','1'),
+('41','6'),
+('24','5'),
+('25','5'),
+('26','1'),
+('30','4'),
+('86','6'),
+('51','2'),
+('33','2'),
+('71','1'),
+('94','1'),
+('27','2'),
+('66','2'),
+('77','4'),
+('67','5'),
+('48','1'),
+('90','5'),
+('15','1'),
+('69','3'),
+('84','6'),
+('44','1'),
+('43','1'),
+('107','6'),
+('51','2'),
+('11','1'),
+('37','6'),
+('18','4'),
+('28','5'),
+('94','6'),
+('31','3'),
+('77','5'),
+('65','3'),
+('56','5'),
+('57','1'),
+('7','2'),
+('108','3'),
+('32','3'),
+('69','2'),
+('22','1'),
+('54','2'),
+('18','5'),
+('25','2'),
+('42','3'),
+('8','2'),
+('45','3'),
+('73','1'),
+('6','2'),
+('64','4'),
+('105','1'),
+('74','1'),
+('39','4'),
+('51','4'),
+('110','1'),
+('97','2'),
+('16','3'),
+('53','2'),
+('18','5'),
+('69','4'),
+('18','5'),
+('83','4'),
+('3','3'),
+('72','1'),
+('71','2'),
+('69','4'),
+('34','2'); 
+
+DROP TABLE IF EXISTS featuring_tracks;
+CREATE TABLE featuring_tracks (
+	track_id BIGINT UNSIGNED COMMENT 'Идентификатор трека',
+	feat_id1 BIGINT UNSIGNED COMMENT 'Идентификатор соисполнителя 1',
+	feat_id2 BIGINT UNSIGNED COMMENT 'Идентификатор соисполнителя 2',
+	feat_id3 BIGINT UNSIGNED COMMENT 'Идентификатор соисполнителя 3',
+	feat_id4 BIGINT UNSIGNED COMMENT 'Идентификатор соисполнителя 4',
+	CONSTRAINT featuring_tracks_track_id_fk FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE,
+	CONSTRAINT featuring_tracks_feat_id1_fk FOREIGN KEY (feat_id1) REFERENCES artists(id) ON DELETE CASCADE,
+	CONSTRAINT featuring_tracks_feat_id2_fk FOREIGN KEY (feat_id2) REFERENCES artists(id) ON DELETE CASCADE,
+	CONSTRAINT featuring_tracks_feat_id3_fk FOREIGN KEY (feat_id3) REFERENCES artists(id) ON DELETE CASCADE,
+	CONSTRAINT featuring_tracks_feat_id4_fk FOREIGN KEY (feat_id4) REFERENCES artists(id) ON DELETE CASCADE
+) COMMENT = 'Фиты';
+
+INSERT INTO `featuring_tracks` VALUES ('62','6',NULL,NULL,NULL),
+('85','5','3',NULL,NULL),
+('82','9','8','8','6'),
+('54','7','8','5','3'),
+('6','7',NULL,NULL,NULL),
+('62','6','8','7','2'),
+('16','3',NULL,NULL,NULL),
+('16','9','9','4','2'),
+('30','5',NULL,NULL,NULL),
+('19','7','5','8','5'),
+('35','5','1',NULL,NULL),
+('24','9','5','5',NULL),
+('41','5','1','7','7'),
+('41','3','6','4','1'),
+('8','8','3','8','9'),
+('74','8','2','6','9'),
+('91','5',NULL,NULL,NULL),
+('3','2','5','5','7'),
+('13','2',NULL,NULL,NULL); 
 
 DROP TABLE IF EXISTS playlists;
 CREATE TABLE playlists (
@@ -1954,12 +2551,183 @@ DELIMITER //
 CREATE PROCEDURE search_songs (IN input_text VARCHAR(50))
 BEGIN
 	SELECT
-	CONCAT(ar.name, ' - ', t.name) AS songs
+	output_track(t.id) AS songs
 	FROM artists ar
-		LEFT JOIN tracks t 
+		JOIN tracks t 
 			ON t.artist_id = ar.id
 	WHERE t.name LIKE CONCAT('%', input_text, '%') OR ar.name LIKE CONCAT('%', input_text, '%')
 	ORDER BY t.rating DESC;
+END//
+DELIMITER ;
+
+-- Функция объединения жанров музыки
+DROP FUNCTION IF EXISTS output_track_genres;
+DELIMITER //
+CREATE FUNCTION output_track_genres (tr_id BIGINT UNSIGNED)
+RETURNS VARCHAR(50)
+DETERMINISTIC
+BEGIN
+	DECLARE count_var INT;
+	DECLARE amount INT;
+	DECLARE cur_genre_id BIGINT UNSIGNED;
+	DECLARE cur_genre NVARCHAR(30);
+	DECLARE out_genre NVARCHAR(50);
+	DECLARE out_genre_old NVARCHAR(50);
+
+	SET count_var = 1;
+	SET amount = (SELECT COUNT(DISTINCT genre_id) FROM tracks_genres WHERE track_id = tr_id GROUP BY track_id LIMIT 1);
+
+	while_loop: WHILE count_var <= amount DO
+		SET cur_genre_id = 
+			(SELECT DISTINCT genre_id
+			FROM 
+			(
+			    SELECT DISTINCT
+			      ROW_NUMBER() OVER (PARTITION BY track_id) AS RowNum, genre_id
+			    FROM (SELECT DISTINCT * FROM tracks_genres WHERE track_id = tr_id) AS tmp
+			) t2
+			WHERE RowNum = count_var);
+		SET cur_genre = (SELECT name FROM genres WHERE id = cur_genre_id);
+		SET out_genre = IF (ISNULL(out_genre_old), 
+							CONCAT(cur_genre),
+							CONCAT(out_genre_old, ', ', cur_genre));
+		SET out_genre_old = out_genre;
+		SET count_var = count_var + 1;
+	END WHILE while_loop;
+	RETURN out_genre;
+END//
+DELIMITER ;
+
+-- Функция объединения жанров исполнителя
+DROP FUNCTION IF EXISTS output_artist_genres;
+DELIMITER //
+CREATE FUNCTION output_artist_genres (ar_id BIGINT UNSIGNED)
+RETURNS VARCHAR(50)
+DETERMINISTIC
+BEGIN
+	DECLARE count_var INT;
+	DECLARE amount INT;
+	DECLARE cur_genre_id BIGINT UNSIGNED;
+	DECLARE cur_genre NVARCHAR(30);
+	DECLARE out_genre NVARCHAR(50);
+	DECLARE out_genre_old NVARCHAR(50);
+
+	SET count_var = 1;
+	SET amount = (SELECT COUNT(DISTINCT genre_id) FROM artists_genres WHERE artist_id = ar_id GROUP BY artist_id LIMIT 1);
+
+	while_loop: WHILE count_var <= amount DO
+		SET cur_genre_id = 
+			(SELECT DISTINCT genre_id
+			FROM 
+			(
+			    SELECT DISTINCT
+			      ROW_NUMBER() OVER (PARTITION BY artist_id) AS RowNum, genre_id
+			    FROM (SELECT DISTINCT * FROM artists_genres WHERE artist_id = ar_id) AS tmp
+			) t2
+			WHERE RowNum = count_var);
+		SET cur_genre = (SELECT name FROM genres WHERE id = cur_genre_id);
+		SET out_genre = IF (ISNULL(out_genre_old), 
+							CONCAT(cur_genre),
+							CONCAT(out_genre_old, ', ', cur_genre));
+		SET out_genre_old = out_genre;
+		SET count_var = count_var + 1;
+	END WHILE while_loop;
+	RETURN out_genre;
+END//
+DELIMITER ;
+
+-- Функция объединения жанров альбома
+DROP FUNCTION IF EXISTS output_album_genres;
+DELIMITER //
+CREATE FUNCTION output_album_genres (al_id BIGINT UNSIGNED)
+RETURNS VARCHAR(50)
+DETERMINISTIC
+BEGIN
+	DECLARE count_var INT;
+	DECLARE amount INT;
+	DECLARE cur_genre_id BIGINT UNSIGNED;
+	DECLARE cur_genre NVARCHAR(30);
+	DECLARE out_genre NVARCHAR(50);
+	DECLARE out_genre_old NVARCHAR(50);
+
+	SET count_var = 1;
+	SET amount = (SELECT COUNT(DISTINCT genre_id) FROM albums_genres WHERE album_id = al_id GROUP BY album_id LIMIT 1);
+
+	while_loop: WHILE count_var <= amount DO
+		SET cur_genre_id = 
+			(SELECT DISTINCT genre_id
+			FROM 
+			(
+			    SELECT DISTINCT
+			      ROW_NUMBER() OVER (PARTITION BY album_id) AS RowNum, genre_id
+			    FROM (SELECT DISTINCT * FROM albums_genres WHERE album_id = al_id) AS tmp
+			) t2
+			WHERE RowNum = count_var);
+		SET cur_genre = (SELECT name FROM genres WHERE id = cur_genre_id);
+		SET out_genre = IF (ISNULL(out_genre_old), 
+							CONCAT(cur_genre),
+							CONCAT(out_genre_old, ', ', cur_genre));
+		SET out_genre_old = out_genre;
+		SET count_var = count_var + 1;
+	END WHILE while_loop;
+	RETURN out_genre;
+END//
+DELIMITER ;
+
+-- Функция объединения исполнителя, фитов и названия трека в одну строку
+DROP FUNCTION IF EXISTS output_track;
+DELIMITER //
+CREATE FUNCTION output_track (tr_id BIGINT UNSIGNED)
+RETURNS VARCHAR(100)
+DETERMINISTIC
+BEGIN
+	
+	DECLARE out_track VARCHAR(100);
+	DECLARE track_name VARCHAR(50);
+	DECLARE track_artist_id BIGINT UNSIGNED;
+	DECLARE artist_name VARCHAR(50);
+	DECLARE feat1_id BIGINT UNSIGNED;
+	DECLARE feat2_id BIGINT UNSIGNED;
+	DECLARE feat3_id BIGINT UNSIGNED;
+	DECLARE feat4_id BIGINT UNSIGNED;
+
+	SET track_name = (SELECT name FROM tracks WHERE id = tr_id LIMIT 1);
+	SET track_artist_id = (SELECT artist_id FROM tracks WHERE id = tr_id LIMIT 1);
+	SET artist_name = (SELECT artists.name FROM artists WHERE artists.id = track_artist_id LIMIT 1);
+	SET feat1_id = (SELECT feat_id1 FROM featuring_tracks WHERE track_id = tr_id LIMIT 1);
+	SET feat2_id = (SELECT feat_id2 FROM featuring_tracks WHERE track_id = tr_id LIMIT 1);
+	SET feat3_id = (SELECT feat_id3 FROM featuring_tracks WHERE track_id = tr_id LIMIT 1);
+	SET feat4_id = (SELECT feat_id4 FROM featuring_tracks WHERE track_id = tr_id LIMIT 1);
+
+	SET out_track = IF(
+						feat1_id IS NOT NULL, 
+						IF(
+							feat2_id IS NOT NULL, 
+							IF(
+								feat3_id IS NOT NULL,
+								IF(
+									feat4_id IS NOT NULL,
+									CONCAT(artist_name, ' ft. ', 
+											(SELECT artists.name FROM artists WHERE artists.id = feat1_id), ', ',
+											(SELECT artists.name FROM artists WHERE artists.id = feat2_id), ', ',
+											(SELECT artists.name FROM artists WHERE artists.id = feat3_id), ', ',
+											(SELECT artists.name FROM artists WHERE artists.id = feat4_id), ' - ', track_name),
+									CONCAT(artist_name, ' ft. ', 
+											(SELECT artists.name FROM artists WHERE artists.id = feat1_id), ', ',
+											(SELECT artists.name FROM artists WHERE artists.id = feat2_id), ', ',
+											(SELECT artists.name FROM artists WHERE artists.id = feat3_id), ' - ', track_name)
+								),
+								CONCAT(artist_name, ' ft. ', 
+										(SELECT artists.name FROM artists WHERE artists.id = feat1_id), ', ',
+										(SELECT artists.name FROM artists WHERE artists.id = feat2_id), ' - ', track_name)
+							),
+							CONCAT(artist_name, ' ft. ',
+									(SELECT artists.name FROM artists WHERE artists.id = feat1_id), ' - ', track_name)
+						),
+						CONCAT(artist_name, ' - ', track_name)
+					);
+
+	RETURN out_track;
 END//
 DELIMITER ;
 
@@ -1980,12 +2748,12 @@ CREATE VIEW popular_playlists AS
 DROP VIEW IF EXISTS top_popular_songs;
 CREATE VIEW top_popular_songs AS
 	SELECT DISTINCT
-		CONCAT(ar.name, ' - ', t.name) AS liked_songs,
+		output_track(t.id) AS liked_songs,
 		t.rating AS likes
 	FROM liked_tracks lt
-		LEFT JOIN tracks t
+		JOIN tracks t
 			ON t.id = lt.track_id
-		LEFT JOIN artists ar
+		JOIN artists ar
 			ON t.artist_id = ar.id
 	ORDER BY t.rating DESC
 	LIMIT 10;
@@ -1994,12 +2762,12 @@ CREATE VIEW top_popular_songs AS
 DROP VIEW IF EXISTS weekly_popular_songs;
 CREATE VIEW weekly_popular_songs AS
 	SELECT DISTINCT
-		CONCAT(ar.name, ' - ', t.name) AS liked_songs,
+		output_track(t.id) AS liked_songs,
 		t.rating AS likes
 	FROM liked_tracks lt
-		LEFT JOIN tracks t
+		JOIN tracks t
 			ON t.id = lt.track_id
-		LEFT JOIN artists ar
+		JOIN artists ar
 			ON t.artist_id = ar.id
 	WHERE WEEK(t.created_at) BETWEEN (WEEK(NOW()) - 1) AND WEEK(NOW())
 	ORDER BY t.rating DESC
