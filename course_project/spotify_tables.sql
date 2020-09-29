@@ -894,36 +894,51 @@ INSERT INTO `tracks_genres` VALUES ('9','5'),
 DROP TABLE IF EXISTS featuring_tracks;
 CREATE TABLE featuring_tracks (
 	track_id BIGINT UNSIGNED COMMENT 'Идентификатор трека',
-	feat_id1 BIGINT UNSIGNED COMMENT 'Идентификатор соисполнителя 1',
-	feat_id2 BIGINT UNSIGNED COMMENT 'Идентификатор соисполнителя 2',
-	feat_id3 BIGINT UNSIGNED COMMENT 'Идентификатор соисполнителя 3',
-	feat_id4 BIGINT UNSIGNED COMMENT 'Идентификатор соисполнителя 4',
-	CONSTRAINT featuring_tracks_track_id_fk FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE,
-	CONSTRAINT featuring_tracks_feat_id1_fk FOREIGN KEY (feat_id1) REFERENCES artists(id) ON DELETE CASCADE,
-	CONSTRAINT featuring_tracks_feat_id2_fk FOREIGN KEY (feat_id2) REFERENCES artists(id) ON DELETE CASCADE,
-	CONSTRAINT featuring_tracks_feat_id3_fk FOREIGN KEY (feat_id3) REFERENCES artists(id) ON DELETE CASCADE,
-	CONSTRAINT featuring_tracks_feat_id4_fk FOREIGN KEY (feat_id4) REFERENCES artists(id) ON DELETE CASCADE
+	feat_id BIGINT UNSIGNED COMMENT 'Идентификатор соисполнителя',
+	CONSTRAINT featuring_tracks_feat_id_fk FOREIGN KEY (feat_id) REFERENCES artists(id) ON DELETE CASCADE
 ) COMMENT = 'Фиты';
 
-INSERT INTO `featuring_tracks` VALUES ('62','6',NULL,NULL,NULL),
-('85','5','3',NULL,NULL),
-('82','9','8','8','6'),
-('54','7','8','5','3'),
-('6','7',NULL,NULL,NULL),
-('62','6','8','7','2'),
-('16','3',NULL,NULL,NULL),
-('16','9','9','4','2'),
-('30','5',NULL,NULL,NULL),
-('19','7','5','8','5'),
-('35','5','1',NULL,NULL),
-('24','9','5','5',NULL),
-('41','5','1','7','7'),
-('41','3','6','4','1'),
-('8','8','3','8','9'),
-('74','8','2','6','9'),
-('91','5',NULL,NULL,NULL),
-('3','2','5','5','7'),
-('13','2',NULL,NULL,NULL); 
+INSERT INTO `featuring_tracks` VALUES 
+('62','6'),
+('85','5'),
+('85','3'),
+('82','9'),
+('82','6'),
+('82','8'),
+('54','3'),
+('6','7'),
+('62','6'),
+('62','8'),
+('62','7'),
+('62','2'),
+('16','3'),
+('16','9'),
+('16','4'),
+('16','2'),
+('30','5'),
+('19','7'),
+('19','5'),
+('19','8'),
+('35','5'),
+('35','1'),
+('24','9'),
+('24','5'),
+('41','5'),
+('41','1'),
+('41','7'),
+('41','6'),
+('8','3'),
+('8','8'),
+('8','9'),
+('74','8'),
+('74','2'),
+('74','6'),
+('74','9'),
+('91','5'),
+('3','2'),
+('3','5'),
+('3','7'),
+('13','2'); 
 
 DROP TABLE IF EXISTS playlists;
 CREATE TABLE playlists (
@@ -2567,33 +2582,21 @@ CREATE FUNCTION output_track_genres (tr_id BIGINT UNSIGNED)
 RETURNS VARCHAR(50)
 DETERMINISTIC
 BEGIN
-	DECLARE count_var INT;
-	DECLARE amount INT;
-	DECLARE cur_genre_id BIGINT UNSIGNED;
-	DECLARE cur_genre NVARCHAR(30);
-	DECLARE out_genre NVARCHAR(50);
-	DECLARE out_genre_old NVARCHAR(50);
-
-	SET count_var = 1;
-	SET amount = (SELECT COUNT(DISTINCT genre_id) FROM tracks_genres WHERE track_id = tr_id GROUP BY track_id LIMIT 1);
-
-	while_loop: WHILE count_var <= amount DO
-		SET cur_genre_id = 
-			(SELECT DISTINCT genre_id
-			FROM 
-			(
-			    SELECT DISTINCT
-			      ROW_NUMBER() OVER (PARTITION BY track_id) AS RowNum, genre_id
-			    FROM (SELECT DISTINCT * FROM tracks_genres WHERE track_id = tr_id) AS tmp
-			) t2
-			WHERE RowNum = count_var);
-		SET cur_genre = (SELECT name FROM genres WHERE id = cur_genre_id);
-		SET out_genre = IF (ISNULL(out_genre_old), 
-							CONCAT(cur_genre),
-							CONCAT(out_genre_old, ', ', cur_genre));
-		SET out_genre_old = out_genre;
-		SET count_var = count_var + 1;
-	END WHILE while_loop;
+	
+	DECLARE out_genre VARCHAR(50);
+	
+	SET out_genre = (
+		SELECT
+			GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ')
+		FROM tracks t
+			JOIN tracks_genres tg 
+				ON tg.track_id = t.id
+			JOIN genres g
+				ON g.id = tg.genre_id 
+		WHERE t.id = tr_id
+		GROUP BY t.id
+	);
+	
 	RETURN out_genre;
 END//
 DELIMITER ;
@@ -2605,34 +2608,23 @@ CREATE FUNCTION output_artist_genres (ar_id BIGINT UNSIGNED)
 RETURNS VARCHAR(50)
 DETERMINISTIC
 BEGIN
-	DECLARE count_var INT;
-	DECLARE amount INT;
-	DECLARE cur_genre_id BIGINT UNSIGNED;
-	DECLARE cur_genre NVARCHAR(30);
-	DECLARE out_genre NVARCHAR(50);
-	DECLARE out_genre_old NVARCHAR(50);
-
-	SET count_var = 1;
-	SET amount = (SELECT COUNT(DISTINCT genre_id) FROM artists_genres WHERE artist_id = ar_id GROUP BY artist_id LIMIT 1);
-
-	while_loop: WHILE count_var <= amount DO
-		SET cur_genre_id = 
-			(SELECT DISTINCT genre_id
-			FROM 
-			(
-			    SELECT DISTINCT
-			      ROW_NUMBER() OVER (PARTITION BY artist_id) AS RowNum, genre_id
-			    FROM (SELECT DISTINCT * FROM artists_genres WHERE artist_id = ar_id) AS tmp
-			) t2
-			WHERE RowNum = count_var);
-		SET cur_genre = (SELECT name FROM genres WHERE id = cur_genre_id);
-		SET out_genre = IF (ISNULL(out_genre_old), 
-							CONCAT(cur_genre),
-							CONCAT(out_genre_old, ', ', cur_genre));
-		SET out_genre_old = out_genre;
-		SET count_var = count_var + 1;
-	END WHILE while_loop;
+	
+	DECLARE out_genre VARCHAR(50);
+	
+	SET out_genre = (
+		SELECT
+			GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ')
+		FROM artists ar
+			JOIN artists_genres ag 
+				ON ag.artist_id = ar.id 
+			JOIN genres g
+				ON g.id = ag.genre_id 
+		WHERE ar.id = ar_id
+		GROUP BY ar.id
+	);
+	
 	RETURN out_genre;
+	
 END//
 DELIMITER ;
 
@@ -2643,34 +2635,23 @@ CREATE FUNCTION output_album_genres (al_id BIGINT UNSIGNED)
 RETURNS VARCHAR(50)
 DETERMINISTIC
 BEGIN
-	DECLARE count_var INT;
-	DECLARE amount INT;
-	DECLARE cur_genre_id BIGINT UNSIGNED;
-	DECLARE cur_genre NVARCHAR(30);
-	DECLARE out_genre NVARCHAR(50);
-	DECLARE out_genre_old NVARCHAR(50);
-
-	SET count_var = 1;
-	SET amount = (SELECT COUNT(DISTINCT genre_id) FROM albums_genres WHERE album_id = al_id GROUP BY album_id LIMIT 1);
-
-	while_loop: WHILE count_var <= amount DO
-		SET cur_genre_id = 
-			(SELECT DISTINCT genre_id
-			FROM 
-			(
-			    SELECT DISTINCT
-			      ROW_NUMBER() OVER (PARTITION BY album_id) AS RowNum, genre_id
-			    FROM (SELECT DISTINCT * FROM albums_genres WHERE album_id = al_id) AS tmp
-			) t2
-			WHERE RowNum = count_var);
-		SET cur_genre = (SELECT name FROM genres WHERE id = cur_genre_id);
-		SET out_genre = IF (ISNULL(out_genre_old), 
-							CONCAT(cur_genre),
-							CONCAT(out_genre_old, ', ', cur_genre));
-		SET out_genre_old = out_genre;
-		SET count_var = count_var + 1;
-	END WHILE while_loop;
+	
+	DECLARE out_genre VARCHAR(50);
+	
+	SET out_genre = (
+		SELECT
+			GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ')
+		FROM albums al
+			JOIN albums_genres ag 
+				ON ag.album_id = al.id 
+			JOIN genres g
+				ON g.id = ag.genre_id 
+		WHERE al.id = al_id
+		GROUP BY al.id
+	);
+	
 	RETURN out_genre;
+
 END//
 DELIMITER ;
 
@@ -2683,50 +2664,28 @@ DETERMINISTIC
 BEGIN
 	
 	DECLARE out_track VARCHAR(100);
-	DECLARE track_name VARCHAR(50);
-	DECLARE track_artist_id BIGINT UNSIGNED;
-	DECLARE artist_name VARCHAR(50);
-	DECLARE feat1_id BIGINT UNSIGNED;
-	DECLARE feat2_id BIGINT UNSIGNED;
-	DECLARE feat3_id BIGINT UNSIGNED;
-	DECLARE feat4_id BIGINT UNSIGNED;
-
-	SET track_name = (SELECT name FROM tracks WHERE id = tr_id LIMIT 1);
-	SET track_artist_id = (SELECT artist_id FROM tracks WHERE id = tr_id LIMIT 1);
-	SET artist_name = (SELECT artists.name FROM artists WHERE artists.id = track_artist_id LIMIT 1);
-	SET feat1_id = (SELECT feat_id1 FROM featuring_tracks WHERE track_id = tr_id LIMIT 1);
-	SET feat2_id = (SELECT feat_id2 FROM featuring_tracks WHERE track_id = tr_id LIMIT 1);
-	SET feat3_id = (SELECT feat_id3 FROM featuring_tracks WHERE track_id = tr_id LIMIT 1);
-	SET feat4_id = (SELECT feat_id4 FROM featuring_tracks WHERE track_id = tr_id LIMIT 1);
-
-	SET out_track = IF(
-						feat1_id IS NOT NULL, 
-						IF(
-							feat2_id IS NOT NULL, 
-							IF(
-								feat3_id IS NOT NULL,
-								IF(
-									feat4_id IS NOT NULL,
-									CONCAT(artist_name, ' ft. ', 
-											(SELECT artists.name FROM artists WHERE artists.id = feat1_id), ', ',
-											(SELECT artists.name FROM artists WHERE artists.id = feat2_id), ', ',
-											(SELECT artists.name FROM artists WHERE artists.id = feat3_id), ', ',
-											(SELECT artists.name FROM artists WHERE artists.id = feat4_id), ' - ', track_name),
-									CONCAT(artist_name, ' ft. ', 
-											(SELECT artists.name FROM artists WHERE artists.id = feat1_id), ', ',
-											(SELECT artists.name FROM artists WHERE artists.id = feat2_id), ', ',
-											(SELECT artists.name FROM artists WHERE artists.id = feat3_id), ' - ', track_name)
-								),
-								CONCAT(artist_name, ' ft. ', 
-										(SELECT artists.name FROM artists WHERE artists.id = feat1_id), ', ',
-										(SELECT artists.name FROM artists WHERE artists.id = feat2_id), ' - ', track_name)
-							),
-							CONCAT(artist_name, ' ft. ',
-									(SELECT artists.name FROM artists WHERE artists.id = feat1_id), ' - ', track_name)
-						),
-						CONCAT(artist_name, ' - ', track_name)
-					);
-
+	
+	SET out_track = (
+		SELECT
+			CONCAT(
+				main_ar.name, 
+				IF(
+					ft.track_id IS NULL,
+					' - ',
+					CONCAT(' ft. ', GROUP_CONCAT(DISTINCT feat_ar.name SEPARATOR ', '), ' - ')
+				), 
+				t.name)
+		FROM tracks t
+			JOIN artists main_ar
+				ON main_ar.id = t.artist_id 
+			LEFT JOIN featuring_tracks ft 
+				ON ft.track_id = t.id
+			LEFT JOIN artists feat_ar
+				ON feat_ar.id = ft.feat_id
+		WHERE t.id = tr_id
+		GROUP BY t.id
+		LIMIT 1);
+	
 	RETURN out_track;
 END//
 DELIMITER ;
@@ -2739,7 +2698,7 @@ CREATE VIEW popular_playlists AS
 		COALESCE(p.rating, 0) AS likes,		
 		CONCAT(u.firstname, ' ', u.lastname) AS creator
 	FROM playlists p
-		LEFT JOIN users u
+		JOIN users u
 			ON u.id = p.created_by 
 	ORDER BY p.rating DESC
 	LIMIT 10;
