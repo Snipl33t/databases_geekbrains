@@ -14,14 +14,13 @@ CREATE TABLE users (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) COMMENT = 'Покупатели';
 
-
-SELECT * FROM users;
+SELECT * FROM shop.users;
+SELECT * FROM sample.users;
 
 START TRANSACTION;
-INSERT sample.users SELECT * FROM shop.users WHERE id=1;
+  INSERT INTO sample.users SELECT * FROM shop.users WHERE id = 1;
+  DELETE FROM shop.users WHERE id = 1;
 COMMIT;
-
-SELECT * FROM users;
 
 -- 1.2. Создайте представление, которое выводит название name товарной позиции из таблицы products и соответствующее название каталога name из таблицы catalogs.
 USE lesson_9;
@@ -58,8 +57,6 @@ SHOW grants;
 -- С 6:00 до 12:00 функция должна возвращать фразу "Доброе утро", с 12:00 до 18:00 функция должна возвращать фразу "Добрый день", 
 -- с 18:00 до 00:00 — "Добрый вечер", с 00:00 до 6:00 — "Доброй ночи".
 
--- Я не вижу в чем ошибка. Функции просто не работают и все. На деклэр вылезает ошибка.
-
 DROP FUNCTION IF EXISTS hello;
 DELIMITER //
 CREATE FUNCTION hello ()
@@ -85,15 +82,12 @@ SELECT hello();
 -- При попытке присвоить полям NULL-значение необходимо отменить операцию.
 
 DELIMITER //
-CREATE TRIGGER CHECK_name BEFORE UPDATE ON products 
+CREATE TRIGGER CHECK_name_description BEFORE UPDATE ON products 
 FOR EACH ROW 
 BEGIN 
-	SET NEW.name = COALESCE(NEW.name, OLD.name, OLD.name);
-END//
-
-CREATE TRIGGER CHECK_description BEFORE UPDATE ON products 
-FOR EACH ROW 
-BEGIN 
-	SET NEW.description = COALESCE(NEW.description, OLD.description, OLD.description);
+	IF NEW.name AND NEW.description IS NULL THEN
+		SIGNAL SQLSTATE '45000'
+    	SET MESSAGE_TEXT = 'Both name and description are NULL';
+    END IF;
 END//
 DELIMITER ;
